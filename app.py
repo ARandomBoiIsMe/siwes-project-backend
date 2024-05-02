@@ -1,3 +1,4 @@
+import os
 import jwt
 
 from datetime import datetime, timedelta, UTC
@@ -279,3 +280,9 @@ def get_student_log(matric_num, id):
         return jsonify(response), 200
     except HTTPError as error:
         return jsonify({'message': error.message}), error.code
+
+if __name__ == '__main__':
+    app.run(
+        host="0.0.0.0",
+        port=os.environ.get('PORT') or 4000
+    )
