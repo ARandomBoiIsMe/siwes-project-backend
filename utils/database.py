@@ -1,4 +1,5 @@
 import psycopg2
+import psycopg2.extras
 
 def connect_to_db(config):
     try:
@@ -12,7 +13,7 @@ def connect_to_db(config):
         cursor = connection.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS admins (
-            id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            id int SERIAL PRIMARY KEY,
             name text NOT NULL,
             password text NOT NULL
             );
@@ -47,7 +48,7 @@ def connect_to_db(config):
             last_name text NOT NULL,
             first_name text NOT NULL,
             middle_name text,
-            course varchar(10) DEFAULT NULL,
+            course varchar(10) NOT NULL,
             FOREIGN KEY (course) REFERENCES courses (code)
             );
         """)
@@ -56,7 +57,7 @@ def connect_to_db(config):
 
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS logs (
-            id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            id int SERIAL PRIMARY KEY,
             entry_date date NOT NULL,
             data text NOT NULL,
             student varchar(10) NOT NULL,
@@ -97,7 +98,7 @@ def create_student(connection, student):
     connection.commit()
 
 def get_students(connection):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name FROM students "\
@@ -108,7 +109,7 @@ def get_students(connection):
     return cursor.fetchall()
 
 def get_student_data(connection, matric_num):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name, "\
@@ -125,7 +126,7 @@ def get_student_data(connection, matric_num):
     return cursor.fetchall()
 
 def get_student_by_matric_num(connection, matric_num):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "students.password, courses.name as course_name FROM students "\
@@ -139,7 +140,7 @@ def get_student_by_matric_num(connection, matric_num):
     return cursor.fetchone()
 
 def get_students_by_course(connection, course):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name FROM students "\
@@ -153,7 +154,7 @@ def get_students_by_course(connection, course):
     return cursor.fetchall()
 
 def get_students_by_name(connection, name):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name FROM students "\
@@ -167,7 +168,7 @@ def get_students_by_name(connection, name):
     return cursor.fetchall()
 
 def get_students_by_matric_num(connection, matric_num):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name FROM students "\
@@ -179,52 +180,6 @@ def get_students_by_matric_num(connection, matric_num):
     cursor.execute(query, values)
 
     return cursor.fetchall()
-
-def update_student(connection, matric_num, data):
-    cursor = connection.cursor(dictionary=True)
-
-    student = get_student_by_matric_num(connection, matric_num)
-    if not student:
-        return 0
-
-    query = """UPDATE students
-                      SET first_name = %s,
-                          last_name = %s,
-                          email = %s,
-                          date_of_birth = %s,
-                          phone_number = %s,
-                          emergency_phone_number = %s,
-                          course_id = (SELECT id FROM courses WHERE course_name = %s),
-                          hall_id = (SELECT id FROM halls_of_residence WHERE hall_name = %s)
-                       WHERE matric_num = %s
-                    """
-
-    values = (
-        data['first_name'],
-        data['last_name'],
-        data['middle_name'],
-        data['course'],
-        data['matric_num']
-    )
-
-    cursor.execute(query, values)
-
-    connection.commit()
-
-def delete_student(connection, matric_num):
-    cursor = connection.cursor(dictionary=True)
-
-    student = get_student_by_matric_num(connection, matric_num)
-    if not student:
-        return 0
-
-    query = "DELETE FROM students WHERE matric_num = %s"
-
-    values = (matric_num,)
-
-    cursor.execute(query, values)
-
-    connection.commit()
 
 def create_admin(connection, admin):
     cursor = connection.cursor()
@@ -243,7 +198,7 @@ def create_admin(connection, admin):
     connection.commit()
 
 def get_admin_by_id(connection, id):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = "SELECT * FROM admins WHERE id = %s"
 
@@ -254,7 +209,7 @@ def get_admin_by_id(connection, id):
     return cursor.fetchone()
 
 def get_admin_by_name(connection, name):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = "SELECT * FROM admins WHERE name = %s"
 
@@ -265,7 +220,7 @@ def get_admin_by_name(connection, name):
     return cursor.fetchone()
 
 def add_student_log(connection, log, matric_num):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = "INSERT INTO logs (entry_date, data, student) VALUES (%s, %s, %s)"
 
@@ -276,7 +231,7 @@ def add_student_log(connection, log, matric_num):
     connection.commit()
 
 def get_student_logs(connection, matric_num):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = "SELECT * FROM logs WHERE student = %s"
 
@@ -287,7 +242,7 @@ def get_student_logs(connection, matric_num):
     return cursor.fetchall()
 
 def get_student_log(connection, id):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     query = "SELECT * FROM logs WHERE id = %s"
 
@@ -298,7 +253,7 @@ def get_student_log(connection, id):
     return cursor.fetchone()
 
 def delete_log(connection, id):
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     log = get_student_log(connection, id)
     if not log:
