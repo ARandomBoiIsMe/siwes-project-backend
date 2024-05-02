@@ -31,12 +31,13 @@ def connect_to_db(config):
         connection.commit()
 
         cursor.execute("""
-            INSERT IGNORE INTO courses (code, name)
+            INSERT INTO courses (code, name)
             VALUES ('CS', 'Computer Science'),
                 ('SE', 'Software Engineering'),
                 ('IT', 'Information Technology'),
                 ('CT', 'Computer Technology'),
-                ('CIS', 'Computer Information Systems');
+                ('CIS', 'Computer Information Systems')
+                ON CONFLICT (code) DO NOTHING;;
         """)
 
         connection.commit()
