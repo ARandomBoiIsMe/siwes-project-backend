@@ -13,7 +13,7 @@ def connect_to_db(config):
         cursor = connection.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS admins (
-            id int SERIAL PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             name text NOT NULL,
             password text NOT NULL
             );
@@ -57,7 +57,7 @@ def connect_to_db(config):
 
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS logs (
-            id int SERIAL PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             entry_date date NOT NULL,
             data text NOT NULL,
             student varchar(10) NOT NULL,
