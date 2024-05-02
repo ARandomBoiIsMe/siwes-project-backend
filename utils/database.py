@@ -1,12 +1,12 @@
-from mysql import connector
+import psycopg2
 
 def connect_to_db(config):
     try:
-        connection = connector.connect(
+        connection = psycopg2.connect(
             host=config["DATABASE"]["HOST"],
             user=config["DATABASE"]["USER"],
             password=config["DATABASE"]["PASSWORD"],
-            database=config["DATABASE"]["DATABASE"],
+            dbname=config["DATABASE"]["DATABASE"],
         )
 
         cursor = connection.cursor()
