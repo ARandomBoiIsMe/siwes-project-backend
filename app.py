@@ -3,6 +3,7 @@ import jwt
 
 from datetime import datetime, timedelta, UTC
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from utils import database, config
@@ -12,6 +13,7 @@ CONFIG = config.load_config()
 CONNECTION = database.connect_to_db(CONFIG)
 
 app = Flask(__name__)
+CORS(app)
 
 @app.post("/student/register")
 def register_student():
