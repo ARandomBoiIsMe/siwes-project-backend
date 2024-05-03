@@ -10,63 +10,63 @@ def connect_to_db(config):
             dbname=config["DATABASE"]["DATABASE"],
         )
 
-        cursor = connection.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS admins (
-            id SERIAL PRIMARY KEY,
-            name text NOT NULL,
-            password text NOT NULL
-            );
-        """)
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS admins (
+                id SERIAL PRIMARY KEY,
+                name text NOT NULL,
+                password text NOT NULL
+                );
+            """)
 
-        connection.commit()
+            connection.commit()
 
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS courses (
-            code varchar(10) NOT NULL PRIMARY KEY,
-            name text NOT NULL
-            );
-        """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS courses (
+                code varchar(10) NOT NULL PRIMARY KEY,
+                name text NOT NULL
+                );
+            """)
 
-        connection.commit()
+            connection.commit()
 
-        cursor.execute("""
-            INSERT INTO courses (code, name)
-            VALUES ('CS', 'Computer Science'),
-                ('SE', 'Software Engineering'),
-                ('IT', 'Information Technology'),
-                ('CT', 'Computer Technology'),
-                ('CIS', 'Computer Information Systems')
-                ON CONFLICT (code) DO NOTHING;;
-        """)
+            cursor.execute("""
+                INSERT INTO courses (code, name)
+                VALUES ('CS', 'Computer Science'),
+                    ('SE', 'Software Engineering'),
+                    ('IT', 'Information Technology'),
+                    ('CT', 'Computer Technology'),
+                    ('CIS', 'Computer Information Systems')
+                    ON CONFLICT (code) DO NOTHING;;
+            """)
 
-        connection.commit()
+            connection.commit()
 
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS students (
-            matric_num varchar(10) NOT NULL PRIMARY KEY,
-            password text NOT NULL,
-            last_name text NOT NULL,
-            first_name text NOT NULL,
-            middle_name text,
-            course varchar(10) NOT NULL,
-            FOREIGN KEY (course) REFERENCES courses (code)
-            );
-        """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS students (
+                matric_num varchar(10) NOT NULL PRIMARY KEY,
+                password text NOT NULL,
+                last_name text NOT NULL,
+                first_name text NOT NULL,
+                middle_name text,
+                course varchar(10) NOT NULL,
+                FOREIGN KEY (course) REFERENCES courses (code)
+                );
+            """)
 
-        connection.commit()
+            connection.commit()
 
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS logs (
-            id SERIAL PRIMARY KEY,
-            entry_date date NOT NULL,
-            data text NOT NULL,
-            student varchar(10) NOT NULL,
-            FOREIGN KEY (student) REFERENCES students (matric_num)
-            );
-        """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS logs (
+                id SERIAL PRIMARY KEY,
+                entry_date date NOT NULL,
+                data text NOT NULL,
+                student varchar(10) NOT NULL,
+                FOREIGN KEY (student) REFERENCES students (matric_num)
+                );
+            """)
 
-        connection.commit()
+            connection.commit()
 
         return connection
     except Exception as e:
@@ -74,8 +74,6 @@ def connect_to_db(config):
         raise
 
 def create_student(connection, student):
-    cursor = connection.cursor()
-
     student_exists = get_student_by_matric_num(connection, student['matric_num'])
     if student_exists:
         return 0
@@ -94,24 +92,28 @@ def create_student(connection, student):
         student['course']
     )
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(query, values)
 
-    connection.commit()
+        connection.commit()
+    except psycopg2.Error as error:
+        raise error
 
 def get_students(connection):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name FROM students "\
             "JOIN courses ON students.course = courses.code"
 
-    cursor.execute(query)
+    try:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query)
 
-    return cursor.fetchall()
+            return cursor.fetchall()
+    except psycopg2.Error as error:
+        raise error
 
 def get_student_data(connection, matric_num):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name, "\
             "logs.id as id, logs.entry_date as entry_date, logs.data as data "\
@@ -122,13 +124,15 @@ def get_student_data(connection, matric_num):
 
     values = (matric_num,)
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, values)
 
-    return cursor.fetchall()
+            return cursor.fetchall()
+    except psycopg2.Error as error:
+        raise error
 
 def get_student_by_matric_num(connection, matric_num):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "students.password, courses.name as course_name FROM students "\
             "JOIN courses ON students.course = courses.code "\
@@ -136,13 +140,15 @@ def get_student_by_matric_num(connection, matric_num):
 
     values = (matric_num,)
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, values)
 
-    return cursor.fetchone()
+            return cursor.fetchone()
+    except psycopg2.Error as error:
+        raise error
 
 def get_students_by_course(connection, course):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name FROM students "\
             "JOIN courses ON students.course = courses.code "\
@@ -150,13 +156,15 @@ def get_students_by_course(connection, course):
 
     values = (f"%{course}%",)
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, values)
 
-    return cursor.fetchall()
+            return cursor.fetchall()
+    except psycopg2.Error as error:
+        raise error
 
 def get_students_by_name(connection, name):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name FROM students "\
             "JOIN courses ON students.course = courses.code "\
@@ -164,13 +172,15 @@ def get_students_by_name(connection, name):
 
     values = (f"%{name}%", f"%{name}%", f"%{name}%")
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, values)
 
-    return cursor.fetchall()
+            return cursor.fetchall()
+    except psycopg2.Error as error:
+        raise error
 
 def get_students_by_matric_num(connection, matric_num):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name FROM students "\
             "JOIN courses ON students.course = courses.code "\
@@ -178,9 +188,13 @@ def get_students_by_matric_num(connection, matric_num):
 
     values = (f"%{matric_num}%",)
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, values)
 
-    return cursor.fetchall()
+            return cursor.fetchall()
+    except psycopg2.Error as error:
+        raise error
 
 def create_admin(connection, admin):
     cursor = connection.cursor()
@@ -194,68 +208,80 @@ def create_admin(connection, admin):
 
     values = (admin['name'], admin['password'])
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(query, values)
+    except psycopg2.Error as error:
+        raise error
 
     connection.commit()
 
 def get_admin_by_id(connection, id):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     query = "SELECT * FROM admins WHERE id = %s"
 
     values = (id,)
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, values)
 
-    return cursor.fetchone()
+            return cursor.fetchone()
+    except psycopg2.Error as error:
+        raise error
 
 def get_admin_by_name(connection, name):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     query = "SELECT * FROM admins WHERE name = %s"
 
     values = (name,)
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, values)
 
-    return cursor.fetchone()
+            return cursor.fetchone()
+    except psycopg2.Error as error:
+        raise error
 
 def add_student_log(connection, log, matric_num):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     query = "INSERT INTO logs (entry_date, data, student) VALUES (%s, %s, %s)"
 
     values = (log['entry_date'], log['data'], matric_num)
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(query, values)
+    except psycopg2.Error as error:
+        raise error
 
     connection.commit()
 
 def get_student_logs(connection, matric_num):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     query = "SELECT * FROM logs WHERE student = %s"
 
     values = (matric_num,)
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, values)
 
-    return cursor.fetchall()
+            return cursor.fetchall()
+    except psycopg2.Error as error:
+        raise error
 
 def get_student_log(connection, id):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     query = "SELECT * FROM logs WHERE id = %s"
 
     values = (id,)
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, values)
 
-    return cursor.fetchone()
+            return cursor.fetchone()
+    except psycopg2.Error as error:
+        raise error
 
 def delete_log(connection, id):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
     log = get_student_log(connection, id)
     if not log:
         return 0
@@ -264,6 +290,10 @@ def delete_log(connection, id):
 
     values = (id,)
 
-    cursor.execute(query, values)
+    try:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, values)
+    except psycopg2.Error as error:
+        raise error
 
     connection.commit()
