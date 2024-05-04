@@ -152,7 +152,7 @@ def get_students_by_course(connection, course):
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name FROM students "\
             "JOIN courses ON students.course = courses.code "\
-            "WHERE courses.name LIKE %s"
+            "WHERE courses.name ILIKE %s"
 
     values = (f"%{course}%",)
 
@@ -168,7 +168,7 @@ def get_students_by_name(connection, name):
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name FROM students "\
             "JOIN courses ON students.course = courses.code "\
-            "WHERE (students.first_name LIKE %s OR students.last_name LIKE %s OR students.middle_name LIKE %s)"
+            "WHERE (students.first_name ILIKE %s OR students.last_name ILIKE %s OR students.middle_name ILIKE %s)"
 
     values = (f"%{name}%", f"%{name}%", f"%{name}%")
 
@@ -184,7 +184,7 @@ def get_students_by_matric_num(connection, matric_num):
     query = "SELECT students.matric_num, students.first_name, students.last_name, students.middle_name, "\
             "courses.name as course_name FROM students "\
             "JOIN courses ON students.course = courses.code "\
-            "WHERE students.matric_num LIKE %s"
+            "WHERE students.matric_num ILIKE %s"
 
     values = (f"%{matric_num}%",)
 
