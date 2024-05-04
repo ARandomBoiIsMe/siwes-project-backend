@@ -98,6 +98,7 @@ def create_student(connection, student):
 
         connection.commit()
     except psycopg2.Error as error:
+        connection.rollback()
         raise error
 
 def get_students(connection):
@@ -111,6 +112,7 @@ def get_students(connection):
 
             return cursor.fetchall()
     except psycopg2.Error as error:
+        connection.rollback()
         raise error
 
 def get_student_data(connection, matric_num):
@@ -130,6 +132,7 @@ def get_student_data(connection, matric_num):
 
             return cursor.fetchall()
     except psycopg2.Error as error:
+        connection.rollback()
         raise error
 
 def get_student_by_matric_num(connection, matric_num):
@@ -146,6 +149,7 @@ def get_student_by_matric_num(connection, matric_num):
 
             return cursor.fetchone()
     except psycopg2.Error as error:
+        connection.rollback()
         raise error
 
 def get_students_by_course(connection, course):
@@ -162,6 +166,7 @@ def get_students_by_course(connection, course):
 
             return cursor.fetchall()
     except psycopg2.Error as error:
+        connection.rollback()
         raise error
 
 def get_students_by_name(connection, name):
@@ -178,6 +183,7 @@ def get_students_by_name(connection, name):
 
             return cursor.fetchall()
     except psycopg2.Error as error:
+        connection.rollback()
         raise error
 
 def get_students_by_matric_num(connection, matric_num):
@@ -194,6 +200,7 @@ def get_students_by_matric_num(connection, matric_num):
 
             return cursor.fetchall()
     except psycopg2.Error as error:
+        connection.rollback()
         raise error
 
 def create_admin(connection, admin):
@@ -211,10 +218,11 @@ def create_admin(connection, admin):
     try:
         with connection.cursor() as cursor:
             cursor.execute(query, values)
-    except psycopg2.Error as error:
-        raise error
 
-    connection.commit()
+        connection.commit()
+    except psycopg2.Error as error:
+        connection.rollback()
+        raise error
 
 def get_admin_by_id(connection, id):
     query = "SELECT * FROM admins WHERE id = %s"
@@ -227,6 +235,7 @@ def get_admin_by_id(connection, id):
 
             return cursor.fetchone()
     except psycopg2.Error as error:
+        connection.rollback()
         raise error
 
 def get_admin_by_name(connection, name):
@@ -240,6 +249,7 @@ def get_admin_by_name(connection, name):
 
             return cursor.fetchone()
     except psycopg2.Error as error:
+        connection.rollback()
         raise error
 
 def add_student_log(connection, log, matric_num):
@@ -250,10 +260,11 @@ def add_student_log(connection, log, matric_num):
     try:
         with connection.cursor() as cursor:
             cursor.execute(query, values)
-    except psycopg2.Error as error:
-        raise error
 
-    connection.commit()
+        connection.commit()
+    except psycopg2.Error as error:
+        connection.rollback()
+        raise error
 
 def get_student_logs(connection, matric_num):
     query = "SELECT * FROM logs WHERE student = %s"
@@ -266,6 +277,7 @@ def get_student_logs(connection, matric_num):
 
             return cursor.fetchall()
     except psycopg2.Error as error:
+        connection.rollback()
         raise error
 
 def get_student_log(connection, id):
@@ -279,6 +291,7 @@ def get_student_log(connection, id):
 
             return cursor.fetchone()
     except psycopg2.Error as error:
+        connection.rollback()
         raise error
 
 def delete_log(connection, id):
@@ -293,7 +306,8 @@ def delete_log(connection, id):
     try:
         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(query, values)
-    except psycopg2.Error as error:
-        raise error
 
-    connection.commit()
+        connection.commit()
+    except psycopg2.Error as error:
+        connection.rollback()
+        raise error
